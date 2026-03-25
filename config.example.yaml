@@ -75,3 +75,7 @@ sqlite:
 logging:
   level: INFO
   format: "[%(asctime)s][%(name)s][%(levelname)s] %(message)s"
+
+# Bot-specific settings
+# Alert one-byte nodes that we have switched to multi-byte pathing
+alert_for_multibyte: false

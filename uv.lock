@@ -79,7 +79,7 @@ wheels = [
 [[package]]
 name = "mcbot"
 version = "0.2.0"
-source = { git = "https://github.com/zevaryx/mcbot.git?rev=dev#8840fdb978cde0c9147ecb776a8b44286f8abe6a" }
+source = { git = "https://github.com/zevaryx/mcbot.git?rev=dev#01bc423c41f058c067c21a526941b519ef7f6e14" }
 dependencies = [
     { name = "aiosqlite" },
     { name = "croniter" },

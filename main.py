@@ -2,12 +2,14 @@ import asyncio
 import logging
 from datetime import datetime
 
-from mcbot import triggers, Bot, Context, Task, load_settings
+from mcbot import triggers, Bot, Context, Task
+
 from commands.alerts import AlertCommands
 from commands.myself import MyselfCommands
 from commands.testing import TestingCommands
+from settings import Settings
 
-settings = load_settings()
+settings = Settings.load_settings()
 logger = logging.getLogger("zbot")
 
 bot = Bot(settings)
