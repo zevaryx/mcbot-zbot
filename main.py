@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 
 from mcbot import triggers, Bot, Context, Task, load_settings
+from commands.alerts import AlertCommands
 from commands.myself import MyselfCommands
 from commands.testing import TestingCommands
 
@@ -13,6 +14,7 @@ bot = Bot(settings)
 
 testing_commands = TestingCommands(bot)
 myself_commands = MyselfCommands(bot)
+alert_commands = AlertCommands(bot)
 
 @bot.command(
     description="Show help for commands",
