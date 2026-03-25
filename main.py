@@ -14,34 +14,38 @@ bot = Bot(settings)
 testing_commands = TestingCommands(bot)
 myself_commands = MyselfCommands(bot)
 
-@bot.command
+@bot.command(
+    description="Show help for commands",
+    help="/help [command]"
+)
 async def help(ctx: Context):
-    """This help message"""
-    messages = []
-    current_message = ""
-    for command in ctx.bot._commands:
-        logger.debug(f"Processing {command.name}")
-        help_msg = f"{settings.prefix}{command.name}"
-        if docstring := command.callback.__doc__:
-            help_msg += f" - {docstring}"
-        help_msg += "\n"
-        if len(current_message + help_msg) > 140 and current_message:
+    if ctx.content and (cmd := ctx.bot.get_command(ctx.content)):
+        await ctx.send(cmd.description + "\n" + cmd.help) # type: ignore
+    else:
+        messages = []
+        current_message = ""
+        for name, command in ctx.bot._commands.items():
+            logger.debug(f"Processing {name}")
+            help_msg = f"{ctx.bot.prefix}{name}"
+            if docstring := command.description:
+                help_msg += f" - {docstring}"
+            help_msg += "\n"
+            if len(current_message + help_msg) > 140 and current_message:
+                messages.append(current_message)
+                current_message = ""
+            elif len(current_message + help_msg) > 140 and not current_message:
+                logger.error(f"Command {name} has too long of a help string, please edit")
+                continue
+            current_message += help_msg
+            
+        if current_message:
             messages.append(current_message)
-            current_message = ""
-        elif len(current_message + help_msg) > 140 and not current_message:
-            logger.error(f"Command {command.name} has too long of a docstring, please edit")
-            continue
-        current_message += help_msg
-        
-    if current_message:
-        messages.append(current_message)
-    for message in messages:
-        await ctx.send(message.strip())
-        await asyncio.sleep(1)
+        for message in messages:
+            await ctx.send(message.strip())
+            await asyncio.sleep(1)
 
 # @bot.task
 # @Task.create(triggers.IntervalTrigger(seconds=5))
 # async def five_second_test(bot: Bot):
 #     bot.logger.info("5 seconds")
-
 asyncio.run(bot.start())

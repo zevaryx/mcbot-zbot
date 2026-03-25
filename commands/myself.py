@@ -1,17 +1,19 @@
 from datetime import datetime
 
 from mcbot import Context
+from mcbot.models.internal.command import command
 from mcbot.utils.board_configs import HARDWARE_CONFIGS
 
-from . import CommandWrapper
+from . import Extension
 
-class MyselfCommands(CommandWrapper):
+class MyselfCommands(Extension):
+    
+    @command(description="About the bot")
     async def about(self, ctx: Context):
-        """About this bot"""
         await ctx.send("Written by Zeva, using https://github.com/zevaryx/mcbot, a native Python library for Pi hats")
-        
+    
+    @command(description="Bot stats")
     async def stats(self, ctx: Context):
-        """Bot stats"""
         uptime = (datetime.now() - self.bot._start_time)
         contacts = len(self.bot.get_contacts())
         last_advert = "N/A"

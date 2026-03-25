@@ -3,16 +3,17 @@ import binascii
 from datetime import datetime
 
 from mcbot import Context
+from mcbot.models.internal.command import command
 
-from . import CommandWrapper
+from . import Extension
 
-class TestingCommands(CommandWrapper):        
+class TestingCommands(Extension):
+    @command(description="Pong!")        
     async def ping(self, ctx: Context):
-        """Pong!"""
         await ctx.reply("Pong!")
-        
+    
+    @command(description="Get message path")
     async def path(self, ctx: Context):
-        """Get message path"""
         contacts = self.bot.get_contacts()
         path: list[str] = ctx.packet.get_path_hashes_hex()
         messages = []
@@ -32,7 +33,7 @@ class TestingCommands(CommandWrapper):
                 messages.append(current_message)
                 current_message = ""
             elif len(current_message + step) > 140 and not current_message:
-                self.logger.warning(f"Path step is >140 characters: {step}")
+                self._logger.warning(f"Path step is >140 characters: {step}")
                 step = step[:32] + "\n"
                 if len(current_message + step) > 140:
                     messages.append(current_message)
@@ -46,8 +47,8 @@ class TestingCommands(CommandWrapper):
             await ctx.send(message.strip())
             await asyncio.sleep(1)
             
+    @command(description="Test connectivity to the bot")
     async def test(self, ctx: Context):
-        """Get connection stats to the bot"""
         path = ",".join(ctx.packet.get_path_hashes_hex()) or "direct"
         snr = ctx.packet.snr
         rssi = ctx.packet.rssi
@@ -58,9 +59,9 @@ class TestingCommands(CommandWrapper):
             f"RSSI: {rssi} dBm | Received at: {received_at} | "
             f"Hash Size: {ctx.packet.get_path_hash_size()}"
         )
-        
+    
+    @command(description="Echo a message", help="/echo [message]")
     async def echo(self, ctx: Context):
-        """Echo a message"""
         if ctx.content:
             await ctx.send(ctx.content)
         else:
