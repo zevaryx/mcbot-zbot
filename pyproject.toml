@@ -1,0 +1,12 @@
+[project]
+name = "bot"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.14"
+dependencies = [
+    "mcbot",
+]
+
+[tool.uv.sources]
+mcbot = { git = "https://github.com/zevaryx/mcbot.git", rev = "dev" }
