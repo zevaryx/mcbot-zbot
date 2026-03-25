@@ -7,7 +7,7 @@ from commands.myself import MyselfCommands
 from commands.testing import TestingCommands
 
 settings = load_settings()
-logger = logging.getLogger("ZBot01")
+logger = logging.getLogger("zbot")
 
 bot = Bot(settings)
 
