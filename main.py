@@ -6,6 +6,7 @@ from mcbot import triggers, Bot, Context, Task
 
 from commands.alerts import AlertCommands
 from commands.myself import MyselfCommands
+from commands.nodes import NodeCommands
 from commands.testing import TestingCommands
 from settings import Settings
 
@@ -17,6 +18,7 @@ bot = Bot(settings)
 testing_commands = TestingCommands(bot)
 myself_commands = MyselfCommands(bot)
 alert_commands = AlertCommands(bot)
+node_commands = NodeCommands(bot)
 
 @bot.command(
     description="Show help for commands",

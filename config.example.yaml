@@ -78,4 +78,9 @@ logging:
 
 # Bot-specific settings
 # Alert one-byte nodes that we have switched to multi-byte pathing
-alert_for_multibyte: false
+alerts:
+  - message: Hello! If you can see this message, please go to your Experimental Settings and set path mode to 2-byte!
+    enabled: false
+    type: time
+    schedule:
+      hour: 12
