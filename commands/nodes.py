@@ -46,7 +46,7 @@ class NodeManager:
         prefix = prefix.strip()
         matches = []
         for node in self.nodes:
-            if node.node_type in [NodeType.REPEATER, NodeType.ROOM_SERVER] and node.public_key.upper().startswith(prefix.upper()):
+            if node.node_type == node_type and node.public_key.upper().startswith(prefix.upper()):
                 matches.append(node)
         return matches
     
