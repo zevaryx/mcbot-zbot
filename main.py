@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 
 from mcbot import triggers, Bot, Context, Task
+from mcbot.models.internal.commands import CommandType
 
 from commands.alerts import AlertCommands
 from commands.myself import MyselfCommands
@@ -20,7 +21,7 @@ myself_commands = MyselfCommands(bot)
 alert_commands = AlertCommands(bot)
 node_commands = NodeCommands(bot)
 
-@bot.command(
+@bot.prefixed_command(
     description="Show help for commands",
     help="/help [command]"
 )
@@ -30,7 +31,9 @@ async def help(ctx: Context):
     else:
         messages = []
         current_message = ""
-        for name, command in ctx.bot._commands.items():
+        for (name, cmd_type), command in ctx.bot._commands.items():
+            if cmd_type == CommandType.CHAT:
+                continue
             logger.debug(f"Processing {name}")
             help_msg = f"{ctx.bot.prefix}{name}"
             if docstring := command.description:

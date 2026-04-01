@@ -2,7 +2,6 @@ import asyncio
 from functools import partial
 from typing import TYPE_CHECKING
 
-from mcbot.models.internal.command import command
 from mcbot.models.internal.task import Task
 from mcbot.models.internal.triggers import TimeTrigger
 

@@ -3,16 +3,25 @@ import binascii
 from datetime import datetime
 
 from mcbot import Context
-from mcbot.models.internal.command import command
+from mcbot.models.internal.commands.chat import chat_command
+from mcbot.models.internal.commands.prefixed import prefixed_command
+from pymc_core.protocol.constants import CONTACT_TYPE_REPEATER, CONTACT_TYPE_ROOM_SERVER
 
 from . import Extension
 
 class TestingCommands(Extension):
-    @command(description="Pong!")        
+    @prefixed_command(description="Pong!")        
     async def ping(self, ctx: Context):
         await ctx.reply("Pong!")
     
-    @command(description="Get message path")
+    @prefixed_command(name="path", description="Get message path")
+    async def _prefixed_path(self, ctx: Context):
+        await self.path(ctx)
+        
+    @chat_command(name="path", description="Get message path", triggers=["p", "path"])
+    async def _chat_path(self, ctx: Context):
+        await self.path(ctx)
+
     async def path(self, ctx: Context):
         contacts = self.bot.get_contacts()
         path: list[str] = ctx.packet.get_path_hashes_hex()
@@ -21,6 +30,8 @@ class TestingCommands(Extension):
         for hop in path:
             matching_contact = None
             for contact in contacts:
+                if not contact.adv_type in [CONTACT_TYPE_ROOM_SERVER, CONTACT_TYPE_REPEATER]:
+                    continue
                 if contact.public_key.hex()[:2].upper() == hop.upper():
                     matching_contact = contact
                     break
@@ -47,7 +58,14 @@ class TestingCommands(Extension):
             await ctx.send(message.strip())
             await asyncio.sleep(1)
             
-    @command(description="Test connectivity to the bot")
+    @prefixed_command(name="test", description="Test connectivity to the bot")
+    async def _prefixed_test(self, ctx: Context):
+        await self.test(ctx)
+        
+    @chat_command(name="test", description="Test connectivity to the bot", triggers=["t", "test", "testing"])
+    async def _chat_test(self, ctx: Context):
+        await self.test(ctx)
+    
     async def test(self, ctx: Context):
         path = ",".join(ctx.packet.get_path_hashes_hex()) or "direct"
         snr = ctx.packet.snr
@@ -60,7 +78,7 @@ class TestingCommands(Extension):
             f"Hash Size: {ctx.packet.get_path_hash_size()}"
         )
     
-    @command(description="Echo a message", help="/echo [message]")
+    @prefixed_command(description="Echo a message", help="/echo [message]")
     async def echo(self, ctx: Context):
         if ctx.content:
             await ctx.send(ctx.content)

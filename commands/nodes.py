@@ -1,3 +1,4 @@
+import binascii
 import json
 import logging
 import re
@@ -7,9 +8,12 @@ from typing import TYPE_CHECKING, Any
 import aiohttp
 from mcbot import Context
 from mcbot.const import __version__
-from mcbot.models.internal.command import command
+from mcbot.models.internal.commands.chat import chat_command
+from mcbot.models.internal.commands.prefixed import prefixed_command
 from mcbot.models.internal.task import Task
 from mcbot.models.internal.triggers import IntervalTrigger
+from pymc_core.companion.models import Contact
+from pymc_core.protocol.constants import CONTACT_TYPE_REPEATER, CONTACT_TYPE_ROOM_SERVER
 
 from . import Extension
 from models.colomesh.node import Node, NodeType
@@ -85,10 +89,71 @@ class NodeCommands(Extension):
         
         self._manager = NodeManager()
         
-    @command(
+    def _search_contacts(self, prefix: str) -> list[Contact]:
+        contacts = self.bot.get_contacts()
+        matches = []
+        for contact in contacts:
+            if not contact.adv_type in [CONTACT_TYPE_ROOM_SERVER, CONTACT_TYPE_REPEATER]:
+                continue
+            if binascii.hexlify(contact.public_key).decode().upper().startswith(prefix.upper()):
+                matches.append(contact)
+        return matches
+    
+    def _dedup(self, matches: list[Contact | Node]) -> list[str]:
+        lookup: dict[str, str] = {}
+        for match in matches:
+            pk = match.public_key
+            if isinstance(pk, bytes):
+                pk = binascii.hexlify(pk).decode()
+            pk = pk.lower()
+            if pk not in lookup:
+                lookup[pk] = match.name
+        return list(lookup.values())
+    
+    @prefixed_command(
+        name="nodecount",
+        description="Get a count of the nodes in Colorado",
+    )
+    async def nodecount(self, ctx: Context):
+        nodes = {
+            NodeType.REPEATER: 0,
+            NodeType.ROOM_SERVER: 0,
+            NodeType.COMPANION: 0,
+            NodeType.SENSOR: 0,
+        }
+        names = {
+            NodeType.REPEATER: "Repeater",
+            NodeType.ROOM_SERVER: "Room Server",
+            NodeType.COMPANION: "Companion",
+            NodeType.SENSOR: "Sensor",
+        }
+        for node in self._manager.nodes:
+            nodes[node.node_type] += 1
+            
+        message = ""
+        for node_type, num in nodes.items():
+            if num > 0:
+                message += f"{names.get(node_type)}: {num}\n"
+        await ctx.send(message.strip())
+            
+        
+    @prefixed_command(
+        name="prefix",
         description="Get node(s) with prefix",
         help="/prefix <prefix>, where <prefix> is the first 1, 2, or 3 bytes of the public key",
     )
+    async def _prefixed_prefix(self, ctx: Context):
+        await self.prefix(ctx)
+        
+    @chat_command(
+        name="prefix",
+        description="Get node(s) with prefix",
+        help="prefix <prefix>, where <prefix> is the first 1, 2, or 3 bytes of the public key",
+        triggers=["prefix"],
+    )
+    async def _chat_prefix(self, ctx: Context):
+        await self.prefix(ctx)
+    
     async def prefix(self, ctx: Context):
         if not self._manager._updated:
             await self._manager.update()
@@ -96,13 +161,15 @@ class NodeCommands(Extension):
             self._logger.debug(f"Invalid prefix: {ctx.content}")
             await ctx.send("Usage: /prefix <prefix>, where <prefix> is the first 1, 2, or 3 bytes of the public key")
             return
-        matches = self._manager.get_nodes(ctx.content)
+        matches_nm = self._manager.get_nodes(ctx.content)
+        matches_bot = self._search_contacts(ctx.content)
+        matches = self._dedup(matches_nm + matches_bot)
         if not matches:
             await ctx.send(f"❌ No known nodes with prefix {ctx.content}")
         else:
             message = f"Prefix '{ctx.content.upper()}': {len(matches)} repeater(s)\n"
             for idx, match in enumerate(matches, start=1):
-                message += f"{idx}. {match.name}\n"
+                message += f"{idx}. {match}\n"
             await ctx.send(message.strip())
         
     @Task.create(IntervalTrigger(hours=1))
