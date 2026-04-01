@@ -112,7 +112,7 @@ class NodeCommands(Extension):
     
     @prefixed_command(
         name="nodecount",
-        description="Get a count of the nodes in Colorado",
+        description="Get a count of the nodes from analyzers",
     )
     async def nodecount(self, ctx: Context):
         if not self._manager._updated:
@@ -132,7 +132,7 @@ class NodeCommands(Extension):
         for node in self._manager.nodes:
             nodes[node.node_type] += 1
             
-        message = ""
+        message = "Nodes in CO Region:\n"
         for node_type, num in nodes.items():
             if num > 0:
                 message += f"{names.get(node_type)}: {num}\n"
