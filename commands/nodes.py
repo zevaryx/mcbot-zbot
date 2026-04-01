@@ -115,6 +115,8 @@ class NodeCommands(Extension):
         description="Get a count of the nodes in Colorado",
     )
     async def nodecount(self, ctx: Context):
+        if not self._manager._updated:
+            await self._manager.update()
         nodes = {
             NodeType.REPEATER: 0,
             NodeType.ROOM_SERVER: 0,
